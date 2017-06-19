@@ -1,3 +1,5 @@
+# simple fuzzer script to demonstrate network fuzzing, using python + tftp.
+
 import socket
 import sys
 
