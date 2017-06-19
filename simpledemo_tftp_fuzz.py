@@ -1,3 +1,5 @@
+# Simple Fuzzer to demonstrate network fuzzing using the tftp protocol. Done for MIS meetup group.
+
 import socket
 import sys
 
