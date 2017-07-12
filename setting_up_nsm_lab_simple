@@ -1,0 +1,232 @@
+## Setting up a Virtual NSM network
+
+#### End Goal: Create virtualized network capable of performing network monitoring and analysis from a single machine. For this example, I will be using VMware Workstation on Linux. The process is the same for VMware workstation on Windows. The process is slightly different on VMware Fusions. 
+
+* I would also recommend checking out the book 'Applied Network Security Monitoring' if this is of any interest to you. The book is worth its weight in gold in relation to network security monitoring/analysis.
+* [Link - non-affiliate](https://www.amazon.com/Applied-Network-Security-Monitoring-Collection/dp/0124172083)
+
+#### Disclaimer:
+* I will not be posting specific instructions for VMware Fusions or Oracle Virtualbox, but will have a link to a page explaining how to configure virtual networks in both. 
+* [VMware Fusions - Setting up Virtual Networks](https://pubs.vmware.com/fusion-5/index.jsp?topic=%2Fcom.vmware.fusion.help.doc%2FGUID-C5837B81-9509-4F1B-9572-0EC0CFA87563.html)
+* [Creating Virtual Networks using Virtualbox - BrianLinkletter](http://www.brianlinkletter.com/how-to-use-virtualbox-to-emulate-a-network/) - Please note this method requires Graphical Network Simulator 3(GNS3)
+* [VirtualBox Documentation - Internal Networking](https://www.virtualbox.org/manual/ch06.html) - This notes that it seems to be possible to do the exact same thing we do here with Workstation with VirtualBox, under section 6.6 .
+* Pictures don't seem to render on github wiki pages, so I've linked to the respective images with the 'PIC' distinction.
+
+
+### Background links
+* [Video on what Bro is](https://www.youtube.com/watch?v=BBl0yaUdq4c)
+* [SecurityOnion](https://securityonion.net/)
+* [pfSense](https://www.pfsense.org/)
+* [Network Bridge](https://en.wikipedia.org/wiki/Bridging_(networking))
+* [SPAN Port](https://www.miarec.com/faq/what-is-port-mirroring)
+* [NAT - Network Address Translation](https://en.wikipedia.org/wiki/Network_address_translation)
+
+
+
+### Getting Started
+We will be using three different OS's in total:
+
+* SecurityOnion as the NSM box, 
+* pfSense as router/TAP interface, 
+* Third choice is up to you, I will be using an existing Windows machine, though you can use any VM you want. 
+
+At the end of this guide, you will have 3 separate networks with a separate VM in each one.
+All you need to do at the end, is add your desired VM to the virtual 'LAN' network and you'll be able to monitor all incoming/outoging traffic to all VMs in that network using the SecurityOnion VM, allowing for you to experiment with various NSM tools. To do so, add a network interface to your desired VM, and set that interface to be connected to the 'LAN' LAN Segment.
+
+### Network Design:
+[PIC - Network design](http://imgur.com/Kw4XLRU)
+
+We will be creating 3 different virtual networks, 'WAN', 'LAN', and 'NSM-network'.
+
+WAN will be your outward facing network, i.e. accesses the internet.
+
+LAN will be your inward facing network. This will be where you put any machines you want to monitor. You will also need to access pfSense's web-based configuration page from this network.
+
+NSM-network will be the location of your SecurityOnion VM. 
+
+The 'LAN' network will be configured with a bridge/TAP to the 'NSM' network. This will allow for the SecurityOnion VM to hoover up the data, as we will set its interface to promiscuous mode. This will mirror all traffic sent to/from the 'LAN' network to the 'NSM' network.
+
+In order to accomplish the above, we will be creating the 3 different networks using VMwares 'LAN Segment' feature to create virtual networks, and then use a pfSense VM to act as a router for them.
+
+### Downloading ISOs/prepping:
+
+So we will start with installing pfSense and setting up the groundwork for the virtual networks.
+
+From pfSense "Getting Started" page :
+>"The pfSense project is a free network firewall distribution, based on the FreeBSD operating system with a custom kernel and including third party free software packages for additional functionality. pfSense software, with the help of the package system, is able to provide the same functionality or more of common commercial firewalls, without any of the artificial limitations. It has successfully replaced every big name commercial firewall you can imagine in numerous installations around the world, including Check Point, Cisco PIX, Cisco ASA, Juniper, Sonicwall, Netgear, Watchguard, Astaro, and more."
+
+You can download pfSense from: [Link](https://www.pfsense.org/download/) .
+
+On the install page, Select 'Filetype: Install', and 'Architecture: AMD64'.
+
+Then click download. This should start the download of the pfSense ISO.
+
+While that's going, lets download the SecurityOnion ISO as well.
+
+From SecurityOnion's homepage (https://securityonion.net/):
+>"Security Onion is a Linux distro for intrusion detection, network security monitoring, and log management. It’s based on Ubuntu and contains Snort, Suricata, Bro, OSSEC, Sguil, Squert, ELSA, Xplico, NetworkMiner, and many other security tools. The easy-to-use Setup wizard allows you to build an army of distributed sensors for your enterprise in minutes!"
+
+Read more - Introduction to SecurityOnion: https://github.com/Security-Onion-Solutions/security-onion/wiki/IntroductionToSecurityOnion
+
+You can download an ISO from here: https://github.com/Security-Onion-Solutions/security-onion/blob/master/Verify_ISO.md
+
+While that is downloading, start thinking about what you want to be your first test VM for monitoring. For those who just want something without thinking, Microsoft provides VM's for web browser compatibility testing, offering Windows 7-10 as VMs freely available with a 30day trial license. [Link](https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/)
+
+
+
+
+### Setting Up/Installing pfSense:
+
+Create a new VM using the following settings in VMware Workstation:
+
+* OS: FreeBSD-64bit
+* Name: pfSense
+* Disk Space: 4GB
+* Memory: 1GB
+* Network Adapter #1: NAT
+* Network Adapter #2: LAN Segment - LAN
+* Network Adapter #3: LAN Segment - NSM-network
+* For the network adapters set to LAN segment, click the 'LAN Segments' button, then select "Add", and rename it accordingly.
+
+
+It should look like this: 
+[PIC - VMware configuration results](http://imgur.com/dB7XJHo)
+
+
+Now that the network interfaces have been added, let's install and configure pfSense.
+
+
+Upon booting pfSense, you'll be asked how it should boot, don't touch anything, default settings are ok for this.
+
+
+Then, it should dump you on this screen: 
+[PIC - pfSense prompt](http://imgur.com/905e5UI)
+
+* Select 'Accept these Settings', and let it keep going. 
+* You will then be prompted to setup the kernel configuration. Just hit enter on 'Standard Kernel'. 
+* The installation should finish. Disconnect the CD/ISO and reboot.
+* You will then be presented with the following:
+[PIC - pfSense initial start](http://imgur.com/6Sr1Lpn)
+
+* Select option '1) Assign Interfaces'
+* We will not be setting up any VLANs, so type 'n'.
+* It will then ask for you to configure the interfaces.
+* For the 'WAN' interface, we will be selecting 'em0'.
+* For the 'LAN' interface, we will be selecting 'em1'.
+* For the 'Opt1' interface(what will be called the NSM-network), we will select 'em2'
+* After all that, it should look just like the picture below:
+[PIC - Network assignment](http://imgur.com/bebqqjP)
+
+* Now we wait for pfSense to configure those interfaces.
+* Once that's done, we'll setup IP addressing for the interfaces.
+* Now you should be back at the "Welcome to pfSense ...." screen with 16 numbered options.
+* We will now select option "2) Set interface(s) IP address"
+[PIC - IP Set](http://imgur.com/KDv0qSV)
+
+First, we'll configure the 'WAN' interface (em0)
+* You will want to enter y to Configuring the 'WAN' interface via DHCP, as this will allow you to be in a coffee shop and have pfsense be able to access the internet.
+* We will now select option "2) Set interface(s) IP address", again.
+* This time, we will select interface 2, 'LAN' (em1)
+* We will set the defult LAN IP, (I chose 10.0.0.1).
+* Then, we set the subnet bit count (I chose 24 to keep things simple)
+* Then, it will ask for a new IPV4 gateway address, just press enter.
+* It will do the same for a new IPV6 address, same thing as before, just hit enter and move on.
+* It will then ask if you would like to enable the DHCP server on 'LAN', to this , answer 'y'.
+* Then it will ask for the starting IPv4 client range. I chose 10.0.0.10, again to keep things simple.
+* It will then ask for the end range. I chose 10.0.0.15 .
+* pfSense should then say everything has been configured properly, and that the new address for 'LAN' is 10.0.0.1/24.
+* It will also say you can access the 'webConfigurator' by visiting the following url: "http:/10.0.0.1/"
+* Press enter to continue.
+
+
+Now, let's configure the last interface in pfSense. At the main screen, select option 2 again, "2) Set interface(s) IP address".
+* This time, select option 3 (OPT1 / em2).
+* Enter an IPv4 address for the interface (I use 10.0.3.1)
+* Enter 24 as the subnet bit count.
+* Hit enter for no IPv6 address.
+* Enter 'y' for enabling dhcp on the interface.
+* Enter the start and end address ranges for the DHCP server. I used 10.0.3.10-10.0.3.15
+* You should now have 3 separate networks configured within pfSense, 'LAN', and 'NSM' having a DHCP service running along with static IPs. The 'WAN' network, should have a dynamic IP with no DHCP services running. 
+* At this point, take a breather, pfSense is almost completely configured. We'll be pausing the pfSense vm at this point, to lessen the load on our computer(if you're on a desktop or a beast of a machine, just keep it running).
+
+
+### Setting up SecurityOnion:
+Now, let's setup Security Onion.
+* Go through the usual steps of making a new VM in VMware, for OS, select Linux -> Ubuntu 64-bit.
+* Then, modify the settings so that it has:
+* 3 GB of ram
+* 2 network cards. - This will be so that we can update SecurityOnion while installing and post-installation and then remove the card if desired to prevent egress of information.
+
+
+The first network card, should be set to NAT. This will allow us to update securityonion locally while installing.
+* The second network card, will be set to "Lan Segment" - "NSM-network".
+* Then start up the SecurityOnion VM. Just let it auto-boot itself. If it doesn't, hitting enter should work.
+* If the screen goes black, wait for at least a minute. This is a known issue. If it stays black, then either edit your boot settings for nosplash, or re-download the iso and attempt another install.
+* Once you see the grey screen with "Welcome" in the upper left hand corner, you're good. Click "continue".
+* It will bug you that you need at least x space and that the VM should be connected to the internet. 
+* If you are connected to the internet during this, I recommend clicking the "Download updates while installing button". Then click continue.
+* It will then prompt you to choose the disk setup, just click "Install Now". You shouldn't need to worry about that as long as this is within a VM.
+* It will then ask you to confirm, click "Continue".
+* Select your time zone on the map and click "Continue".
+* Choose the correct keyboard layout.
+* Then enter your login details. I use a simple seconion/seconion as this is a lab machine that should not see any internet access when I'm not using it.
+* I also select "auto-login", again, as this is a lab machine on a personal computer and not being deployed in a live environment.
+* It should continue and finish system installation at this point.
+* After install, it will prompt you to reboot the VM. At this point, disconnect the CD/ISO image from the VM.
+
+#### Configuring SecurityOnion install:
+
+* After setup, login with your username/password.
+* Then double click the icon labeled "Setup".
+* Click "Yes, Continue", and then "Yes, configure /etc/network/
+* If you've followed this guide, then you will want to select eth0 as your management interface, and then eth1 as your sniffing interface. Click yes/continue until your prompted to reboot. Then click "Yes, reboot!". 
+* Upon rebooting, double click the "Setup" icon again, this time, selecting "Yes, Continue!".
+* Select "Yes, Skip Network Configuration".
+* Select evaluation mode and press OK.
+* On the next window, the monitor interface should already be selected. Double check and press ok.
+* Then, you will be asked for a username for Sguil. Enter one. I use 'seconion'/'seconion' again because local only/lab machine that's usually off.
+* Click continue/proceed, then on the next popup, click "Yes, proceed with the changes!".
+* You will then be assaulted by a series of pop ups. Take note of each and be sure to read through each one.
+* You can pause the VM or keep it running. We will now focus on setting up a machine for the 'LAN' network.
+
+### Setting up a/the 'LAN' network machine
+* So at this point, you should have a pfSense VM configured with 3 different network adapters, each configured to a different logical network. You should also have a successful installation of SecurityOnion. 
+* We will now setup/import a VM into the 'LAN' network.
+* I will assume you have a VM already configured/imported.
+* Remove any existing network adapters attached to the VM, or disconnect them.
+* Add a new network adapter that is connected to the "LAN Segment" 'LAN' in the network adapter settings.
+* At this point, unpause/resume pfSense
+* Now boot the designated VM in the 'LAN' network.
+
+### Finishing pfSense configuration
+Login into your 'LAN' networked VM, and open a web browser.
+* Go to http://10.0.0.1/  Access pfSense webConfigurator, then login with:
+    user: admin
+    password: pfsense
+
+Continue through the wizard, you will want to enter:
+    Setting your hostname,
+    local domain name,
+    Primary DNS Server
+    Secondary DNS Server
+    Timezone
+
+Continue clicking next/continue until reaching the "Set Admin WebGUI Password". From there, decide on what you want your pfSense administrator account password to be. I would recommend something that you will remember.
+* Finally, click "Reload."
+* Now, click on the "Interfaces", and "Assign". Then, on the new screen, select "Bridges".
+* Once on the "Bridges" screen, click "Add". Select member interfaces "LAN1". 
+* Then click "Show Advanced Options".
+* Next to "Span Port", select OPT1
+* Then go to the bottom of the page and select "Save".
+Ta Da! You should now have all traffic that enters/leaves the "LAN" network being mirrored across to the "OPT1" interface/"NSM-network" from the eth1 interface/"LAN" in pfSense.
+
+At this point, you should be able to not only access the internet, but also be able to see traffic logs and information in SecurityOnion, more specifically, in the SecurityOnion VM, double click the "ELSA" icon on the desktop. You will be presented with a login prompt that will ask for the credentials you created earlier. After logging in, you will be shown a page bland with a series of options on the left hand side. Click any of these to show the sub-categories and see your newly created network data!
+
+
+At this point, you can take any VM/system and as long as you configure it's network adapter to be in the "LAN" LAN Segment, it's traffic will route through the pfSense router, into the general internet. It will also have all traffic to/from the "LAN" network dumped onto the "NSM" network, where we have configured the SecurityOnion VM with a "promiscuous" adapter, which allows it to listen to all traffic on that network segment.
+
+
+For 'tearing down' the network, I suggest snapshotting each machine once you've validated everything is working appropriately. Then, I recommend pausing the VMs in order of 'LAN' machine/s -> SecurityOnion VM -> Finally pausing pfSense last.
+
+
+If you followed this all the way to the end, congratulations and thank you. If you have any thoughts/feedback/criticisms, let me know through meetup's messaging system, or if you have my contact details, don't hesitate to reach out to me.
