@@ -1,4 +1,7 @@
-# simple fuzzer script to demonstrate network fuzzing, using python + tftp.
+# simple fuzzer script to demonstrate network fuzzing, using python + tftp. 
+# Meant to be iterated upon. Used to teach basic network fuzzing using python. Lots of room for improvements. Ideally, one improvement at a time(i.e. De Bruijn sequence/pattern gen, recreate_packet function, error checking, etc)
+# Goal is to be very clear in purpose and verbose, not a 5 line script 
+
 
 import socket
 import sys
@@ -16,6 +19,7 @@ def make_header():
 	print("Your selection: ")
 	header_selection = raw_input()
 	header_selection = int(header_selection)
+	# spot for error checking
 	global header
 	header = 0
 	if header_selection == 1:
@@ -32,6 +36,7 @@ def make_header():
 
 
 # Create fuzzing data
+# De Brujin sequence
 def make_fuzzing_data():
 	print("Create your fuzzing data")
 	
@@ -48,12 +53,12 @@ def make_fuzzing_data():
 		if  default_answer == "y":
 			fuzzing_data = "A"*100
 			default_yes = 1
-			z = z +1
+			z = z + 1
 
 		elif default_answer == "n":
 			print("Select letter or sequence to be repeated: ")
 			input1 = raw_input()
-			z = z+1
+			z = z + 1
 			print("How many times would you like it repeated? i.e. fuzz_string * $number")
 			try:
 				input2 = int(input("Enter a number to multiply the previously supplied number by: "))
@@ -114,3 +119,4 @@ test_data = header + fuzzing_data
 print_result()
 
 make_socket(test_data)
+print("Packet sent to target. Good Luck.")
