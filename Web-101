@@ -1,0 +1,70 @@
+
+
+
+
+
+
+Part 2:
+
+
+
+#### XSS:
+
+Types:
+* Normal/Reflected
+* Persistent
+* DOM
+
+* XSS Occurs when input is accepted by the user and is used to modify execution of javascript.
+* Cross-site-scripting - Wikipedia https://en.wikipedia.org/wiki/Cross-site_scripting
+* Testing for Reflected Cross site scripting (OTG-INPVAL-001) https://www.owasp.org/index.php/Testing_for_Reflected_Cross_site_scripting_(OTG-INPVAL-001)
+* Testing for Stored Cross site scripting (OTG-INPVAL-002) https://www.owasp.org/index.php/Testing_for_Stored_Cross_site_scripting_(OTG-INPVAL-002)
+* Testing for DOM-based Cross site scripting (OTG-CLIENT-001) https://www.owasp.org/index.php/Testing_for_DOM-based_Cross_site_scripting_(OTG-CLIENT-001)
+* Reviewing Code for Cross-site scripting - OWASP https://www.owasp.org/index.php/Reviewing_Code_for_Cross-site_scripting
+* XSS (Cross Site Scripting) Prevention Cheat Sheet - OWASP https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet
+
+#### PHP:
+PHP stands for "Hypertext Preprocessor"; 
+
+* Implementing PHP and similar languages into your application can create a sizable attack surface full of opportunities, such as: 
+  * Local/Remote File Inclusion,
+	* XSS,
+	* Cross-site-request-forgery,
+	* OS Command injection,
+	* Remote code execution,
+	* and others.
+
+Writeups:
+* [History] A Study in Scarlet: http://old.lwn.net/2001/0704/a/study-in-scarlet.php
+* Finding vulnerabilities in PHP scripts(2009): https://www.exploit-db.com/papers/12871/
+* OWASP PHP Security Cheat Sheet https://www.owasp.org/index.php/PHP_Security_Cheat_Sheet
+
+Source Code analysis:
+* RIPS
+* Open source: https://sourceforge.net/projects/rips-scanner/files/
+* Commercial: https://www.ripstech.com/next-generation/
+
+Static analysis tools for PHP
+* https://github.com/exakat/php-static-analysis-tools
+* http://www.devbug.co.uk/
+
+OWASP WAP - Web Application Protection Project https://www.owasp.org/index.php/OWASP_WAP-Web_Application_Protection
+* WAP is a tool to detect and correct input validation vulnerabilities in web applications written in PHP and predicts false positives. The tool combines source code static analysis and data mining to detect vulnerabilities and predict false positives. Then, corrects the source code to remove the real vulnerabilities inserting fixes (small functions) in the right places of the source e code. 
+
+List of PHP vulnerabilitiy advisories:
+	* https://security.sensiolabs.org/database
+
+
+#### SQLi
+* SQL Injections occur when an application performs a query using (unintended / non-sanitized) queries.
+* SQL Injection Wikipedia https://en.wikipedia.org/wiki/SQL_injection
+* SQL Injection - PHP.net http://php.net/manual/en/security.database.sql-injection.php
+* What is the SQL Injection Vulnerability & How to Prevent it? - Netsparker https://www.netsparker.com/blog/web-security/sql-injection-vulnerability/
+* Testing for SQL Injection (OTG-INPVAL-005) - OWASP https://www.owasp.org/index.php/Testing_for_SQL_Injection_(OTG-INPVAL-005)
+* SQL Injection Cheat Sheet - Netsparker https://www.netsparker.com/blog/web-security/sql-injection-cheat-sheet/
+* SQL Injection Attacks by Example - Unixwiz http://www.unixwiz.net/techtips/sql-injection.html
+* The Hitchhiker's Guide to SQL Injection prevention - https://phpdelusions.net/sql_injection
+* Bobby Tables: A guide to preventing SQL injection - http://bobby-tables.com/
+
+
+
