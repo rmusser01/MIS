@@ -1,6 +1,6 @@
 # simple fuzzer script to demonstrate network fuzzing, using python + tftp.
 # Meant to be iterated upon. Used to teach basic network fuzzing using python. Lots of room for improvements. Ideally, one improvement at a time(i.e. De Bruijn sequence/pattern gen, recreate_packet function, error checking, etc)
-# Goal is to be very clear in purpose and verbose, not a 5 line script
+# Goal is to be very clear in purpose and verbose
 
 
 import socket
