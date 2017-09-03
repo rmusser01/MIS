@@ -1,6 +1,6 @@
-# simple fuzzer script to demonstrate network fuzzing, using python + tftp. 
+# simple fuzzer script to demonstrate network fuzzing, using python + tftp.
 # Meant to be iterated upon. Used to teach basic network fuzzing using python. Lots of room for improvements. Ideally, one improvement at a time(i.e. De Bruijn sequence/pattern gen, recreate_packet function, error checking, etc)
-# Goal is to be very clear in purpose and verbose, not a 5 line script 
+# Goal is to be very clear in purpose and verbose, not a 5 line script
 
 
 import socket
@@ -17,11 +17,18 @@ def make_header():
 	print("Please select a header option:(1 - 5)\n")
 	print(" 1. x00x01\n 2. x00x02\n 3. x00x03\n 4. x00x04\n 5. x00x05\n 6. x00x06\n")
 	print("Your selection: ")
-	header_selection = raw_input()
-	header_selection = int(header_selection)
-	# spot for error checking
 	global header
 	header = 0
+	x = 0
+	while x < 1:
+		header_selection = raw_input()
+		header_selection = int(header_selection)
+		if isinstance(header_selection, int):
+			if header_selection > 0 and header_selection < 7:
+				x = x + 1
+			else:
+				print("Invalid Choice, Please Try Again.")
+
 	if header_selection == 1:
 		header = "\x00\x01"
 	elif header_selection == 2:
@@ -39,16 +46,16 @@ def make_header():
 # De Brujin sequence
 def make_fuzzing_data():
 	print("Create your fuzzing data")
-	
+
 	z = 0
-	
+
 	while (z < 1):
 		print("Would you like the default? (100 As sequentially)")
 		print("Your answer( y/n ): ")
-				
+
 		default_answer = raw_input()
-		
-		global fuzzing_data 
+
+		global fuzzing_data
 
 		if  default_answer == "y":
 			fuzzing_data = "A"*100
@@ -120,3 +127,4 @@ print_result()
 
 make_socket(test_data)
 print("Packet sent to target. Good Luck.")
+
